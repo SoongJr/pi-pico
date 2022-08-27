@@ -1,9 +1,8 @@
 from machine import Pin
-import sys
 import json
-import time
-from phew import server, connect_to_wifi
 import dht
+from phew import server, connect_to_wifi
+
 
 # read WIFI configuration from file system
 wifiConfigFile = '/.wifi/connections.json'
@@ -11,15 +10,29 @@ wifiConfigFile = '/.wifi/connections.json'
 with open(wifiConfigFile, 'r', encoding='utf-8') as f:
     # for future compatibility we get a list of connections, though we only use the first one.
     connections = json.load(f)
-connect_to_wifi(connections[0]['ssid'], connections[0]['password'])
+print(connect_to_wifi(connections[0]['ssid'], connections[0]['password']))
 
-# main loop:
-led = Pin("LED", Pin.OUT)
+# set up phew! webserver to expose prometheus endpoint:
 sensor = dht.DHT22(Pin(22))
-led.off()
-while True:
-    led.value((led.value()+1) % 2)
-    time.sleep(2)
-    # take temp and humidity measurement
+
+
+@server.route("/metrics", methods=["GET"])
+def temperature(request):
     sensor.measure()
-    print("T: {}, H: {}".format(sensor.temperature(), sensor.humidity()))
+    response = """# HELP temperature_celsius Room Temperature
+# TYPE temperature_celsius gauge
+temperature_celsius{{room="pico"}} {temperature}
+# HELP humidity_percent Relative Humidity
+# TYPE humidity_percent gauge
+humidity_percent{{room="pico"}} {humidity}
+"""
+    return response.format(temperature=str(sensor.temperature()), humidity=str(sensor.humidity()))
+
+
+@server.catchall()
+def catchall(request):
+    return "Not found\n", 404
+
+
+# start server loop
+server.run()
