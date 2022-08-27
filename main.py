@@ -5,6 +5,7 @@ import json
 import time
 import network
 import urequests as requests
+import dht
 
 # read WIFI configuration from file system
 wifiConfigFile = '/.wifi/connections.json'
@@ -45,7 +46,11 @@ else:
     print('ip = ' + status[0])
 
 led = Pin("LED", Pin.OUT)
+sensor = dht.DHT22(Pin(22))
 led.off()
 while True:
     led.value((led.value()+1) % 2)
-    utime.sleep(1)
+    utime.sleep(2)
+    # take temp and humidity measurement
+    sensor.measure()
+    print("T: {}, H: {}".format(sensor.temperature(), sensor.humidity()))
