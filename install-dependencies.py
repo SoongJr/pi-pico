@@ -28,7 +28,11 @@ else:
 
 
 try:
+    # (re)install
     upip.install("micropython-phew")
+    # verify it can be imported and list exposed classes
+    import phew
+    sorted(dir(phew))
 finally:
     f_frsize, f_bfree = (os.statvfs('/')[1], os.statvfs('/')[3])
     print("free size after install: {}kB".format((f_bfree * f_frsize) / 1024))
