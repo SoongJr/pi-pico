@@ -3,6 +3,9 @@ import json
 import dht
 from phew import server, connect_to_wifi
 
+# set up phew! webserver to expose prometheus endpoint:
+sensor = dht.DHT22(Pin(22))
+
 
 # read WIFI configuration from file system
 wifiConfigFile = '/.wifi/connections.json'
@@ -11,9 +14,6 @@ with open(wifiConfigFile, 'r', encoding='utf-8') as f:
     # for future compatibility we get a list of connections, though we only use the first one.
     connections = json.load(f)
 print(connect_to_wifi(connections[0]['ssid'], connections[0]['password']))
-
-# set up phew! webserver to expose prometheus endpoint:
-sensor = dht.DHT22(Pin(22))
 
 
 @server.route("/metrics", methods=["GET"])
