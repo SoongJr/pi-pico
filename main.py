@@ -1,5 +1,11 @@
-from machine import Pin
 import utime
+from machine import Pin
+import st7789
+
+LCD = st7789.LCD_1inch3()
+LCD.fill(LCD.green)
+LCD.show()
+
 
 # show readiness by blinking LED
 led = Pin('LED')

@@ -48,3 +48,6 @@ print('phew.server contains: ' +
 print()
 f_frsize, f_bfree = (os.statvfs('/')[1], os.statvfs('/')[3])
 print("free size after install: {}kB".format((f_bfree * f_frsize) / 1024))
+
+print()
+print('Please note that you also have to upload the file st7789.py before you can run main.py')
