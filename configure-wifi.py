@@ -5,8 +5,8 @@ import errno
 import json
 
 connections = [
-    dict(ssid='<ENTER DATA>',
-         password='<ENTER DATA>')
+    dict(ssid=input("SSID: "),
+         password=input("password: "))
 ]
 parentDir = '/.wifi'
 wifiConfigFile = parentDir + '/connections.json'
