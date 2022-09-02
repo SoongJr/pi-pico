@@ -1,9 +1,11 @@
+import os
+import dht
 from machine import Pin, ADC
 import json
-import dht
 from phew import server, connect_to_wifi
 
 # Pin mappings
+led = Pin("LED", Pin.OUT, value=1)
 sensor = dht.DHT22(Pin(22))
 # temperature sensor inside the RP2040 chip
 temp_internal = ADC(4)
@@ -43,6 +45,17 @@ response_VSYS = """# HELP system_voltage System Voltage provided by power supply
 # TYPE system_voltage gauge
 system_voltage{{host="%s"}} {0:.2f}
 """ % pico_name
+# response template for flash statistics:
+response_flash = """# HELP flash_total total flash in system in Byte
+# TYPE flash_total gauge
+flash_total{{host="%s"}} {total}
+# HELP flash_used used flash in system in Byte
+# TYPE flash_used gauge
+flash_used{{host="%s"}} {used}
+# HELP flash_used_percent used flash in system in percent
+# TYPE flash_used_percent gauge
+flash_used_percent{{host="%s"}} {used_percent:.1f}
+""" % (pico_name, pico_name, pico_name)
 
 
 def get_dht_response():
@@ -83,26 +96,45 @@ def get_vsys_response():
     return response_VSYS.format(reading)
 
 
+def get_flash_response():
+    statvfs = os.statvfs('/')
+    f_frsize, f_blocks, f_bfree = (statvfs[1], statvfs[2], statvfs[3])
+    total = (f_blocks * f_frsize)
+    used = total-(f_bfree * f_frsize)
+    used_percent = used * 100 / total
+    return response_flash.format(total=total, used=used, used_percent=used_percent)
+
+
 # set up phew! webserver to expose prometheus endpoint:
 @ server.route("/metrics", methods=["GET"])
 def metrics(request):
     # gather response from different sensors but continue if any have issues
     response = ""
+
     try:
         response += get_dht_response()
     except Exception as inst:
         print(type(inst), inst)
         print("Unable to get DHT measurement")
+
     try:
         response += get_cpu_temp_response()
     except Exception as inst:
         print(type(inst), inst)
         print("Unable to get internal chip temperature")
+
     try:
         response += get_vsys_response()
     except Exception as inst:
         print(type(inst), inst)
         print("Unable to get system voltage measurement")
+
+    try:
+        response += get_flash_response()
+    except Exception as inst:
+        print(type(inst), inst)
+        print("Unable to get flash statistics")
+
     # send REST response
     return response
 
@@ -113,4 +145,5 @@ def catchall(request):
 
 
 # start server loop
+led.off()  # turn off LED to show we're ready.
 server.run()

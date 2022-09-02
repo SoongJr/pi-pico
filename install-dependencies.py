@@ -30,9 +30,9 @@ def list_members(classname):
           ', '.join(i for i in sorted(dir(classname)) if not i.startswith('_')))
 
 
-f_frsize, f_bfree = (os.statvfs('/')[1], os.statvfs('/')[3])
-print("free size before install: {}kB".format((f_bfree * f_frsize) / 1024))
-print()
+def print_free_size():
+    f_frsize, f_bfree = (os.statvfs('/')[1], os.statvfs('/')[3])
+    print("free size in flash: {}kB".format((f_bfree * f_frsize) / 1024))
 
 
 def verify_phew():
@@ -43,11 +43,10 @@ def verify_phew():
     list_members(phew.server)
 
 
+print_free_size()
+print()
 # (re)install phew, then verify it can be loaded
 upip.install("micropython-phew")
 verify_phew()
-
-
 print()
-f_frsize, f_bfree = (os.statvfs('/')[1], os.statvfs('/')[3])
-print("free size after install: {}kB".format((f_bfree * f_frsize) / 1024))
+print_free_size()
