@@ -1,7 +1,8 @@
+# expose DHT sensor data (temp and humidity) via a webserver in prometheus syntax.
+# last measurement of power consumption was 30mA in standby, 60mA while processing REST request, giving us about 4 days on a 5000mAh power bank.
+
 # TODOs:
-# - add external bootup LED for when it's in a case
 # - try lowering frequency and/or power-saving mode, does WIFI still work?
-# - test power consumption, maybe with only two accumulators so it doesn't take ages
 # - add audio module and raise alarm if there's a problem
 #       (e.g. Temp outside desired range (either environment temp or CPU temp), file system over 90%)
 
@@ -11,8 +12,10 @@ from machine import Pin, ADC
 import json
 from phew import server, connect_to_wifi, logging
 
+# name of the pico, this will show up in prometheus database
+pico_name = "pico-temp-0"
 # Pin mappings
-led = Pin("LED", Pin.OUT, value=1)
+led = Pin(1, Pin.OUT, value=1)
 dht_sensors = [
     dict(name=pico_name + "_dht-0", pin=dht.DHT22(Pin(16))),
     # dict(name=pico_name + "_dht-1", pin=dht.DHT22(Pin(17))),
@@ -22,6 +25,8 @@ dht_sensors = [
 # connecting it to a different channel compares it to VREF, so we have to calculate back from that (and will only notice any difference when VSYS falls below VREF).
 vsys = ADC(2)
 
+# temperature sensor inside the RP2040 chip (this cannot be modified)
+temp_internal = ADC(4)
 # factor for converting ADC reading to Volts (VERY roughly, not adjusting for ADC offset or VREF ripple!)
 adc_to_volt_factor = 3.3 / (65535)
 
@@ -33,8 +38,6 @@ with open(wifiConfigFile, 'r', encoding='utf-8') as f:
     connections = json.load(f)
 print(connect_to_wifi(connections[0]['ssid'], connections[0]['password']))
 
-# name of the pico, this will show up in prometheus database
-pico_name = "pico-temp-0"
 # response template for dht measurements:
 response_dht = """# HELP temperature_celsius Room Temperature
 # TYPE temperature_celsius gauge
