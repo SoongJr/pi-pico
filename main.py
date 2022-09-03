@@ -13,9 +13,10 @@ from phew import server, connect_to_wifi, logging
 
 # Pin mappings
 led = Pin("LED", Pin.OUT, value=1)
-sensor = dht.DHT22(Pin(22))
-# temperature sensor inside the RP2040 chip
-temp_internal = ADC(4)
+dht_sensors = [
+    dict(name=pico_name + "_dht-0", pin=dht.DHT22(Pin(16))),
+    # dict(name=pico_name + "_dht-1", pin=dht.DHT22(Pin(17))),
+]
 # system voltage (VSYS) to monitor battery charge
 # Normally ADC channel 3 is connected to this internally, but this does not report correct values if WIFI connection is running.
 # connecting it to a different channel compares it to VREF, so we have to calculate back from that (and will only notice any difference when VSYS falls below VREF).
@@ -37,10 +38,10 @@ pico_name = "pico-temp-0"
 # response template for dht measurements:
 response_dht = """# HELP temperature_celsius Room Temperature
 # TYPE temperature_celsius gauge
-temperature_celsius{{room="%s"}} {temperature:.2f}
+temperature_celsius{{host="%s", room="{room}"}} {temperature:.2f}
 # HELP humidity_percent Relative Humidity
 # TYPE humidity_percent gauge
-humidity_percent{{room="%s"}} {humidity}
+humidity_percent{{host="%s", room="{room}"}} {humidity}
 """ % (pico_name, pico_name)
 # response template for internal temperature measurement:
 response_cpu_temp = """# HELP cpu_temperature On-Chip Temperature of the pico
@@ -65,11 +66,12 @@ flash_used_percent{{host="%s"}} {used_percent:.1f}
 """ % (pico_name, pico_name, pico_name)
 
 
-def get_dht_response():
+def get_dht_response(sensor):
     # take measurement
-    sensor.measure()
-    return response_dht.format(temperature=sensor.temperature(),
-                               humidity=round(sensor.humidity()))
+    sensor['pin'].measure()
+    return response_dht.format(room=sensor['name'],
+                               temperature=sensor['pin'].temperature(),
+                               humidity=round(sensor['pin'].humidity()))
 
 
 def get_cpu_temp_response():
@@ -124,11 +126,12 @@ def metrics(request):
     # gather response from different sensors but continue if any have issues
     response = ""
 
-    try:
-        response += get_dht_response()
-    except Exception as inst:
-        print(type(inst), inst)
-        print("Unable to get DHT measurement")
+    for sensor in dht_sensors:
+        try:
+            response += get_dht_response(sensor)
+        except Exception as inst:
+            print(type(inst), inst)
+            print("Unable to get {} measurement".format(sensor['name']))
 
     try:
         response += get_cpu_temp_response()
