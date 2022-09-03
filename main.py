@@ -1,3 +1,10 @@
+# TODOs:
+# - add external bootup LED for when it's in a case
+# - try lowering frequency and/or power-saving mode, does WIFI still work?
+# - test power consumption, maybe with only two accumulators so it doesn't take ages
+# - add audio module and raise alarm if there's a problem
+#       (e.g. Temp outside desired range (either environment temp or CPU temp), file system over 90%)
+
 import os
 import dht
 from machine import Pin, ADC
