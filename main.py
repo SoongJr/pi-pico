@@ -2,7 +2,7 @@ import os
 import dht
 from machine import Pin, ADC
 import json
-from phew import server, connect_to_wifi
+from phew import server, connect_to_wifi, logging
 
 # Pin mappings
 led = Pin("LED", Pin.OUT, value=1)
@@ -108,6 +108,12 @@ def get_flash_response():
 # set up phew! webserver to expose prometheus endpoint:
 @ server.route("/metrics", methods=["GET"])
 def metrics(request):
+    try:
+        # truncate logs on every request, workaround until phew 0.0.3 is released to pypi
+        logging.truncate(8*1024)
+    except:
+        pass
+
     # gather response from different sensors but continue if any have issues
     response = ""
 
