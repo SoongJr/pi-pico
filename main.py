@@ -2,7 +2,9 @@
 # last measurement of power consumption was 30mA in standby, 60mA while processing REST request, giving us about 4 days on a 5000mAh power bank.
 
 # TODOs:
-# - try lowering frequency and/or power-saving mode, does WIFI still work?
+# - try lowering frequency and/or use power-saving mode, does WIFI still work?
+# - other power-saving attempts, like running WIFI only until the first request comes in, then disabling it (or going to sleep) for 2 minutes.
+#       Does this even reduce power consumtion? Looks like bootup is using quite a bit of power, not sure that's because of establishing wifi connection...
 # - add audio module and raise alarm if there's a problem
 #       (e.g. Temp outside desired range (either environment temp or CPU temp), file system over 90%)
 
@@ -13,12 +15,11 @@ import json
 from phew import server, connect_to_wifi, logging
 
 # name of the pico, this will show up in prometheus database
-pico_name = "pico-temp-0"
+pico_name = "pico-dev"
 # Pin mappings
-led = Pin(1, Pin.OUT, value=1)
-dht_sensors = [
-    dict(name=pico_name + "_dht-0", pin=dht.DHT22(Pin(16))),
-    # dict(name=pico_name + "_dht-1", pin=dht.DHT22(Pin(17))),
+dht_sensors = [  # the names need to be unique in your network, so we prefix generic names with the pico_name. Feel free to omit that when you change it to "bedroom cupboard" or whatever.
+    dict(name="fridge", pin=dht.DHT22(Pin(16))),
+    # dict(name="freezer", pin=dht.DHT22(Pin(17))),
 ]
 # system voltage (VSYS) to monitor battery charge
 # Normally ADC channel 3 is connected to this internally, but this does not report correct values if WIFI connection is running.
@@ -29,14 +30,6 @@ vsys = ADC(2)
 temp_internal = ADC(4)
 # factor for converting ADC reading to Volts (VERY roughly, not adjusting for ADC offset or VREF ripple!)
 adc_to_volt_factor = 3.3 / (65535)
-
-# read WIFI configuration from file system
-wifiConfigFile = '/.wifi/connections.json'
-# Opening JSON file
-with open(wifiConfigFile, 'r', encoding='utf-8') as f:
-    # for future compatibility we get a list of connections, though we only use the first one.
-    connections = json.load(f)
-print(connect_to_wifi(connections[0]['ssid'], connections[0]['password']))
 
 # response template for dht measurements:
 response_dht = """# HELP temperature_celsius Room Temperature
@@ -164,5 +157,4 @@ def catchall(request):
 
 
 # start server loop
-led.off()  # turn off LED to show we're ready.
 server.run()

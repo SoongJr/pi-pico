@@ -1,3 +1,8 @@
+TODO: rewrite deployment instructions for pymakr (some stuff moved to boot.py)
+create terminal for your device in pymakr_project view
+right-click configure-wifi.py, pymakr->run on device
+enter credentials in terminal
+
 Remote temperature and humidity sensor using a raspberry pi pico W and one or more DHT22 (AKA AM2302) sensors.  
 Data is exposed as prometheus metrics so [my grafana setup](https://github.com/SoongJr/internet-pi) can capture and display it.  
 
