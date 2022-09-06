@@ -75,29 +75,16 @@ def get_cpu_temp_response():
     # Typically, Vbe = 0.706V at 27 degrees C, with a slope of -1.721mV (0.001721) per degree.
     reading = 27 - ((temp_internal.read_u16() *
                     adc_to_volt_factor) - 0.706) / 0.001721
-    # BUG: as soon as I connect ADC2 or ADC1 to VSYS in order to measure it,
-    # the internal temperature is being reported around -80°C. Without the connection, it is around 30°C.
-    # Do a sanity check and don't report values outside a reasonable range.
-    if reading <= -50 or reading >= 100:
-        raise RuntimeError(
-            "reading outside sane range: {0:.2f}".format(reading))
     return response_cpu_temp.format(reading)
 
 
 def get_vsys_response():
     # take a reading and convert to Volts
     reading = vsys.read_u16() * adc_to_volt_factor
-    # BUG: as soon as I connect ADC2 or ADC1 to VSYS in order to measure it,
-    # the internal temperature is being reported around -80°C. Without the connection, it is around 30°C.
-    # There seems to be an internal pull-down resistor of between 47k and 22k so pulling ADC (no matter which one!) to VSYS creates a minor short circuit.
-    # Trying to circumvent the issue by using a 47k resistor to pull AC to VSYS,
-    # hence reducing the current but also getting a reduced reading due to voltage division.
-    # Correcting for this error (and any others, so long as they're linear) with a linear equation (measured at 5V and 3.6V):
+    # VSYS must be connected to ADC via a resistor or it will leak a lot of power.
+    # using 47k Ohm to oppose the internal resistance (which is somewhere around 33k)
+    # and compensating for the reduced voltage with a linear equation (measured at 4.9V and 3.6V:
     reading = (1.602 * reading) + 1.487
-    # Do a sanity check and don't report values outside a reasonable range.
-    # if reading <= 1 or reading >= 6:
-    #     raise RuntimeError(
-    #         "reading outside sane range: {0:.2f}".format(reading))
     return response_VSYS.format(reading)
 
 
