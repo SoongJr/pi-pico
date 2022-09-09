@@ -7,7 +7,8 @@ from phew import server, connect_to_wifi, logging
 
 
 # Pin mappings
-led = Pin("LED", Pin.OUT, value=1)
+ledYel = Pin(1, Pin.OUT, value=1)
+ledRed = Pin(22, Pin.OUT, value=0)
 
 
 # read WIFI configuration from file system and connect to it
@@ -18,4 +19,4 @@ with open(wifiConfigFile, 'r', encoding='utf-8') as f:
 print(connect_to_wifi(connections[0]['ssid'], connections[0]['password']))
 
 
-led.off()  # turn off LED to show we're entering main.py
+ledYel.off()  # turn off LED to show we're entering main.py

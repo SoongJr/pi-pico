@@ -17,6 +17,7 @@ from phew import server, connect_to_wifi, logging
 # name of the pico, this will show up in prometheus database
 pico_name = "pico-dev"
 # Pin mappings
+ledRed = Pin(22, Pin.OUT, value=0)
 dht_sensors = [  # the names need to be unique in your network, so we prefix generic names with the pico_name. Feel free to omit that when you change it to "bedroom cupboard" or whatever.
     dict(name="fridge", pin=dht.DHT22(Pin(16))),
     # dict(name="freezer", pin=dht.DHT22(Pin(17))),
@@ -100,6 +101,8 @@ def get_flash_response():
 # set up phew! webserver to expose prometheus endpoint:
 @ server.route("/metrics", methods=["GET"])
 def metrics(request):
+    ledRed.off()  # reset error LED
+
     try:
         # truncate logs on every request, workaround until phew 0.0.3 is released to pypi
         logging.truncate(8*1024)
@@ -113,24 +116,28 @@ def metrics(request):
         try:
             response += get_dht_response(sensor)
         except Exception as inst:
+            ledRed.on()  # something went wrong, turn on the error LED
             print(type(inst), inst)
             print("Unable to get {} measurement".format(sensor['name']))
 
     try:
         response += get_cpu_temp_response()
     except Exception as inst:
+        ledRed.on()  # something went wrong, turn on the error LED
         print(type(inst), inst)
         print("Unable to get internal chip temperature")
 
     try:
         response += get_vsys_response()
     except Exception as inst:
+        ledRed.on()  # something went wrong, turn on the error LED
         print(type(inst), inst)
         print("Unable to get system voltage measurement")
 
     try:
         response += get_flash_response()
     except Exception as inst:
+        ledRed.on()  # something went wrong, turn on the error LED
         print(type(inst), inst)
         print("Unable to get flash statistics")
 
@@ -145,3 +152,5 @@ def catchall(request):
 
 # start server loop
 server.run()
+# we left the loop, something went wrong...
+ledRed.on()
