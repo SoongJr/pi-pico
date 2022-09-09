@@ -13,6 +13,7 @@ To set up the pi pico, proceed as follows (it's assumed you have your IDE set up
    1. connect the DHT sensor(s) to GPIOs with a 10k resistor, following the [wiring guide](https://learn.adafruit.com/dht/connecting-to-a-dhtxx-sensor) (I'm using GP16 and GP17 because they are close on the board to where I want my sensors to connect, but you are free to choose).  
    2. pull one of your ADCs to VSYS with a 47k resistor if you want to have VSYS monitoring  
    3. also consider attaching an LED (mine is using a 100 Ohm resistor), which will light up during boot and turn off when the pico done and should be reachable.  
+   For reference, do take a look at the attached [schematics](images/pico-temp-schematic.png) and [PCB layout](images/pico-temp-pcb.png) for my own board.
 2. flash micropython onto your pico (you can get [nightly builds](https://micropython.org/download/rp2-pico-w/))
 3. transfer and run configure-wifi.py on the pico, e.g. with  
    `rshell 'cp configure-wifi.py /pyboard; repl ~ exec(open("/configure-wifi.py").read())'` (after which you have to hit Ctrl+X to get out of REPL)  
