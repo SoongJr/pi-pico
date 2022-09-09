@@ -1,6 +1,5 @@
 # boot.py -- run on boot-up
 import os
-import dht
 from machine import Pin, ADC
 import json
 from phew import server, connect_to_wifi, logging
