@@ -19,8 +19,10 @@ pico_name = "pico-dev"
 # Pin mappings
 ledRed = Pin(22, Pin.OUT, value=0)
 dht_sensors = [  # the names need to be unique in your network, so we prefix generic names with the pico_name. Feel free to omit that when you change it to "bedroom cupboard" or whatever.
-    dict(name=pico_name + "_0", pin=dht.DHT22(Pin(17))),
-    dict(name=pico_name + "_1", pin=dht.DHT22(Pin(16))),
+    dict(name=pico_name + "_0", pin=dht.DHT22(Pin(16))),
+    dict(name=pico_name + "_1", pin=dht.DHT22(Pin(17))),
+    # dict(name=pico_name + "_2", pin=dht.DHT22(Pin(18))),
+    # dict(name=pico_name + "_3", pin=dht.DHT22(Pin(19))),
 ]
 # system voltage (VSYS) to monitor battery charge
 # Normally ADC channel 3 is connected to this internally, but this does not report correct values if WIFI connection is running.
