@@ -16,13 +16,13 @@ from phew import server, connect_to_wifi, logging
 import uasyncio
 
 # name of the pico, this will show up in prometheus database
-pico_name = "pico-dev"
+pico_name = "pico-temp-1"
 # Pin mappings
 ledRed = Pin(22, Pin.OUT, value=0)
 dht_sensors = [  # the names need to be unique in your network, so we prefix generic names with the pico_name. Feel free to omit that when you change it to "bedroom cupboard" or whatever.
-    dict(name=pico_name + "_0", pin=dht.DHT22(Pin(16))),
-    dict(name=pico_name + "_1", pin=dht.DHT22(Pin(17))),
-    # dict(name=pico_name + "_2", pin=dht.DHT22(Pin(18))),
+    dict(name="freezer", pin=dht.DHT22(Pin(16))),
+    dict(name="livingroom", pin=dht.DHT22(Pin(17))),
+    dict(name="fridge", pin=dht.DHT22(Pin(18))),
     # dict(name=pico_name + "_3", pin=dht.DHT22(Pin(19))),
 ]
 # system voltage (VSYS) to monitor battery charge
