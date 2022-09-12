@@ -1,29 +1,14 @@
-# expose DHT sensor data (temp and humidity) via a webserver in prometheus syntax.
-# last measurement of power consumption was 30mA in standby, 60mA while processing REST request, giving us about 4 days on a 5000mAh power bank.
-
-# TODOs:
-# - try lowering frequency and/or use power-saving mode, does WIFI still work?
-# - other power-saving attempts, like running WIFI only until the first request comes in, then disabling it (or going to sleep) for 2 minutes.
-#       Does this even reduce power consumtion? Looks like bootup is using quite a bit of power, not sure that's because of establishing wifi connection...
-# - add audio module and raise alarm if there's a problem
-#       (e.g. Temp outside desired range (either environment temp or CPU temp), file system over 90%)
+# test SD Card board conencted to pins GP10-13
 
 import os
-import dht
 from machine import Pin, ADC
-import json
-from phew import server, connect_to_wifi, logging
+from phew import server, logging
 
 # name of the pico, this will show up in prometheus database
 pico_name = "pico-dev"
 # Pin mappings
+ledYel = Pin(1, Pin.OUT, value=1)
 ledRed = Pin(22, Pin.OUT, value=0)
-dht_sensors = [  # the names need to be unique in your network, so we prefix generic names with the pico_name. Feel free to omit that when you change it to "bedroom cupboard" or whatever.
-    dict(name=pico_name + "_0", pin=dht.DHT22(Pin(16))),
-    dict(name=pico_name + "_1", pin=dht.DHT22(Pin(17))),
-    # dict(name=pico_name + "_2", pin=dht.DHT22(Pin(18))),
-    # dict(name=pico_name + "_3", pin=dht.DHT22(Pin(19))),
-]
 # system voltage (VSYS) to monitor battery charge
 # Normally ADC channel 3 is connected to this internally, but this does not report correct values if WIFI connection is running.
 # connecting it to a different channel compares it to VREF, so we have to calculate back from that (and will only notice any difference when VSYS falls below VREF).
@@ -34,14 +19,6 @@ temp_internal = ADC(4)
 # factor for converting ADC reading to Volts (VERY roughly, not adjusting for ADC offset or VREF ripple!)
 adc_to_volt_factor = 3.3 / (65535)
 
-# response template for dht measurements:
-response_dht = """# HELP temperature_celsius Room Temperature
-# TYPE temperature_celsius gauge
-temperature_celsius{{host="%s", room="{room}"}} {temperature:.2f}
-# HELP humidity_percent Relative Humidity
-# TYPE humidity_percent gauge
-humidity_percent{{host="%s", room="{room}"}} {humidity}
-""" % (pico_name, pico_name)
 # response template for internal temperature measurement:
 response_cpu_temp = """# HELP cpu_temperature On-Chip Temperature of the pico
 # TYPE cpu_temperature gauge
@@ -63,14 +40,6 @@ flash_used{{host="%s"}} {used}
 # TYPE flash_used_percent gauge
 flash_used_percent{{host="%s"}} {used_percent:.1f}
 """ % (pico_name, pico_name, pico_name)
-
-
-def get_dht_response(sensor):
-    # take measurement
-    sensor['pin'].measure()
-    return response_dht.format(room=sensor['name'],
-                               temperature=sensor['pin'].temperature(),
-                               humidity=round(sensor['pin'].humidity()))
 
 
 def get_cpu_temp_response():
@@ -113,14 +82,6 @@ def metrics(request):
 
     # gather response from different sensors but continue if any have issues
     response = ""
-
-    for sensor in dht_sensors:
-        try:
-            response += get_dht_response(sensor)
-        except Exception as inst:
-            ledRed.on()  # something went wrong, turn on the error LED
-            print(type(inst), inst)
-            print("Unable to get {} measurement".format(sensor['name']))
 
     try:
         response += get_cpu_temp_response()

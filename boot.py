@@ -1,8 +1,7 @@
 # boot.py -- run on boot-up
-import os
-from machine import Pin, ADC
+from machine import Pin
 import json
-from phew import server, connect_to_wifi, logging
+from phew import connect_to_wifi
 
 
 # Pin mappings
