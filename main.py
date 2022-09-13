@@ -1,13 +1,14 @@
 # test SD Card board conencted to pins GP10-13
 
 import os
+import gc
 from machine import Pin, ADC
 from phew import server, logging
 
 # name of the pico, this will show up in prometheus database
 pico_name = "pico-dev"
 # Pin mappings
-ledYel = Pin(1, Pin.OUT, value=1)
+ledYel = Pin(1, Pin.OUT, value=0)
 ledRed = Pin(22, Pin.OUT, value=0)
 # system voltage (VSYS) to monitor battery charge
 # Normally ADC channel 3 is connected to this internally, but this does not report correct values if WIFI connection is running.
@@ -113,7 +114,28 @@ def catchall(request):
     return "Not found\n", 404
 
 
+try:
+    # create test file and print its content back on serial port
+    print(os.listdir('/sd'))
+    with open("/sd/sample.txt", 'w', encoding='utf-8') as file:
+        for i in range(5):
+            file.write("Sample text = %s\r\n" % i)
+    with open("/sd/sample.txt", 'r', encoding='utf-8') as file:
+        if file != 0:
+            print("Reading from SD card")
+            read_data = file.read()
+            print(read_data)
+    print(os.listdir('/sd'))
+    os.remove("/sd/sample.txt")
+except:
+    pass
+
 # start server loop
-server.run()
-# we left the loop, something went wrong...
-ledRed.on()
+print(gc.mem_free())
+gc.collect()  # free up as much RAM as we can
+print(gc.mem_free())
+try:
+    server.run()
+finally:
+    # we left the loop, something went wrong...
+    ledRed.on()

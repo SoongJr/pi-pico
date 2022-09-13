@@ -3,6 +3,7 @@ import os
 import json
 import time
 import network
+import urequests
 
 # read WIFI configuration from file system
 with open('/.wifi/connections.json', 'r', encoding='utf-8') as f:
@@ -35,6 +36,13 @@ def print_free_size():
     print("free size in flash: {}kB".format((f_bfree * f_frsize) / 1024))
 
 
+def download_file(url):
+    local_filename = "/lib/" + url.split('/')[-1]
+    r = urequests.get(url)
+    with open(local_filename, 'wb') as f:
+        f.write(r.content)
+
+
 def verify_phew():
     # verify it can be imported and list exposed classes
     print('/lib/phew contains: ' +
@@ -45,10 +53,27 @@ def verify_phew():
     list_members(phew.server)
 
 
+def verify_sdcard():
+    # verify it can be imported and list exposed classes
+    import sdcard
+    from sdcard import SDCard
+    list_members(sdcard)
+    list_members(sdcard.SDCard)
+
+
 print_free_size()
 print()
 # (re)install phew, then verify it can be loaded
 upip.install("micropython-phew")
 verify_phew()
+
+print()
+print_free_size()
+print()
+
+# download sdcard.py from github
+download_file('https://raw.githubusercontent.com/micropython/micropython-lib/cf5ed97b4d93972594c1f265187b8bf9f9989708/micropython/drivers/storage/sdcard/sdcard.py')
+verify_sdcard()
+
 print()
 print_free_size()
