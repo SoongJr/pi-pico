@@ -147,6 +147,37 @@ def metrics(request):
     return response
 
 
+# simple REST API endpoint to return a single temperature-humidity tuple. Takes "room" as input parameter.
+@ server.route("/dht", methods=["GET"])
+def dht_reading(request):
+    ledRed.off()  # reset error LED
+
+    # gather data and send REST response
+    room = request.query.get("room", None)
+    if not room:
+        return "Missing mandatory parameter: room\n", 400
+
+    # extract sensor with given room name:
+    try:
+        sensor = next((i for i in dht_sensors if i["name"] == room))
+    except StopIteration:
+        ledRed.on()  # something went wrong, turn on the error LED
+        return "No sensor in room '{}'\n".format(room), 400
+
+    try:
+        # take measurement of requested room
+        sensor['pin'].measure()
+        return json.dumps({
+            'temperature': sensor['pin'].temperature(),
+            'humidity': sensor['pin'].humidity()
+        })
+    except Exception as inst:
+        ledRed.on()  # something went wrong, turn on the error LED
+        print(type(inst), inst)
+        print("Unable to get {} measurement".format(room))
+        return "Failed procuring data for '{}'\n".format(room), 500
+
+
 @ server.catchall()
 def catchall(request):
     return "Not found\n", 404
