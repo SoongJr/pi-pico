@@ -8,7 +8,7 @@ Data is exposed as prometheus metrics so [my grafana setup](https://github.com/S
 
 This uses micropython with the builtin dht module and the formadible [phew!](https://pypi.org/project/micropython-phew/) module.
 
-To set up the pi pico, proceed as follows (it's assumed you have your IDE set up):
+To set up the pi pico, proceed as follows (it's assumed you have your IDE set up, e.g. VS Code with workspace recommendations):
 1. wire your pi pico, e.g. using a bread board:
    1. connect the DHT sensor(s) to GPIOs with a 10k resistor, following the [wiring guide](https://learn.adafruit.com/dht/connecting-to-a-dhtxx-sensor) (I'm using GP16 and GP17 because they are close on the board to where I want my sensors to connect, but you are free to choose).  
    2. pull one of your ADCs to VSYS with a 47k resistor if you want to have VSYS monitoring  

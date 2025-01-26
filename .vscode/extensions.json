@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "visualstudioexptteam.vscodeintellicode",
+        "ms-python.vscode-pylance",
+        "paulober.pico-w-go"
+    ]
+}
