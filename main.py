@@ -23,7 +23,7 @@ dht_sensors = [  # the names need to be unique in your network, so we prefix gen
     dict(name="freezer", pin=dht.DHT22(Pin(16))),
     dict(name="livingroom", pin=dht.DHT22(Pin(17))),
     dict(name="fridge", pin=dht.DHT22(Pin(18))),
-    # dict(name=pico_name + "_3", pin=dht.DHT22(Pin(19))),
+    dict(name="terrarium", pin=dht.DHT22(Pin(19))),
 ]
 # system voltage (VSYS) to monitor battery charge
 # Normally ADC channel 3 is connected to this internally, but this does not report correct values if WIFI connection is running.
