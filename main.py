@@ -13,6 +13,7 @@ import dht
 from machine import Pin, ADC
 import json
 from phew import server, connect_to_wifi, logging
+import uasyncio
 
 # name of the pico, this will show up in prometheus database
 pico_name = "pico-dev"
@@ -183,7 +184,15 @@ def catchall(request):
     return "Not found\n", 404
 
 
+# reset the event loop (hoping this helps with soft-reboots)
+loop = uasyncio.new_event_loop()
+
+
 # start server loop
 server.run()
+# This runs the asyncio event loop and does not normally return.
+# Any desired tasks have to have been added to the loop (with asyncio.create_task) before this point.
+
 # we left the loop, something went wrong...
+logging.info("Error: event loop stopped.")
 ledRed.on()
